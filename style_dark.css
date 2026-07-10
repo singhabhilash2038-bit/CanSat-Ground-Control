@@ -1,0 +1,740 @@
+/*
+ * style_dark.css — Pure Black Dark Theme for CanSat GCS
+ * -------------------------------------------------------
+ * Loaded AFTER style.css on index_dark.html.
+ * Zero blue tint — true black backgrounds with amber & green accents.
+ * All 8 panels + top-bar fit in a single viewport (no page scroll).
+ * Console swapped to row-3 right, Mission Control is full-width bottom row.
+ */
+
+/* ── GOOGLE FONTS ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ══════════════════════════════════════════════════════════
+   PURE BLACK COLOUR TOKENS
+   ══════════════════════════════════════════════════════════ */
+:root {
+  /* True black backgrounds — no blue */
+  --bg-void:       #000000;
+  --bg-base:       #080808;
+  --bg-panel:      #0f0f0f;
+  --bg-panel-alt:  #141414;
+  --bg-surface:    #1a1a1a;
+  --bg-surface-2:  #202020;
+  --bg-elevated:   #282828;
+  --bg-hover:      #303030;
+
+  /* Borders — warm white tints, no blue */
+  --border-faint:  rgba(255,255,255,0.03);
+  --border-subtle: rgba(255,255,255,0.07);
+  --border-muted:  rgba(255,255,255,0.13);
+  --border-active: rgba(255,255,255,0.24);
+
+  /* Text */
+  --text-primary:   #f2f2f2;
+  --text-secondary: #a0a0a0;
+  --text-tertiary:  #606060;
+  --text-dim:       #383838;
+
+  /* Amber — primary UI accent */
+  --amber-bright:  #ffb300;
+  --amber-mid:     #cc8f00;
+  --amber-muted:   #3d2900;
+  --amber-glow:    rgba(255,179,0,0.14);
+  --amber-glow-lg: rgba(255,179,0,0.06);
+
+  /* Green — data / telemetry reads */
+  --cyan-bright:   #00e676;
+  --cyan-mid:      #00b85a;
+  --cyan-muted:    #003320;
+  --cyan-glow:     rgba(0,230,118,0.12);
+
+  /* Status — vivid, recognisable */
+  --green-nominal: #00e676;
+  --green-muted:   #003320;
+  --green-glow:    rgba(0,230,118,0.12);
+
+  --red-fault:     #ff3d3d;
+  --red-mid:       #cc1f1f;
+  --red-muted:     #2a0000;
+  --red-glow:      rgba(255,61,61,0.14);
+
+  --yellow-warn:   #ffd600;
+  --yellow-muted:  #3a3000;
+  --yellow-glow:   rgba(255,214,0,0.12);
+
+  /* Fonts */
+  --font-ui:   'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Courier New', monospace;
+}
+
+/* ══════════════════════════════════════════════════════════
+   1. ROOT — lock entire page to viewport, no scroll
+   ══════════════════════════════════════════════════════════ */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  background: #000;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
+
+#gcs-container {
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  /* Subtle amber vignette only, zero blue */
+  background-image:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,179,0,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(255,61,61,0.03) 0%, transparent 55%);
+}
+
+/* ══════════════════════════════════════════════════════════
+   2. TOP BAR
+   ══════════════════════════════════════════════════════════ */
+#top-control-bar {
+  background: #0a0a0a;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 12px rgba(0,0,0,0.8);
+  min-height: 52px;
+  padding: 6px 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Amber accent stripe at the very top */
+#top-control-bar::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--amber-bright) 35%,
+    var(--green-nominal) 65%,
+    transparent 100%);
+  opacity: 0.45;
+}
+
+/* Brand */
+#brand-icon svg {
+  filter: drop-shadow(0 0 6px rgba(255,179,0,0.6));
+}
+
+#brand-title {
+  color: var(--amber-bright);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#brand-subtitle {
+  font-size: 0.60rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Status pills */
+.status-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.status-dot { background: var(--text-dim); }
+
+.status-pill.connected {
+  border-color: #004d2a;
+  color: var(--green-nominal);
+}
+.status-pill.connected .status-dot {
+  background: var(--green-nominal);
+  box-shadow: 0 0 6px var(--green-nominal);
+  animation: dark-blink 1.8s infinite;
+}
+
+.status-pill.mission-active {
+  border-color: var(--amber-muted);
+  color: var(--amber-bright);
+}
+.status-pill.mission-active .status-dot {
+  background: var(--amber-bright);
+  box-shadow: 0 0 6px var(--amber-bright);
+  animation: dark-blink 1s infinite;
+}
+
+@keyframes dark-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* Clock */
+.clock-value {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green-nominal);
+  letter-spacing: 0.04em;
+}
+.clock-label { color: var(--text-tertiary); }
+
+/* Baud select */
+.ctrl-select {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.ctrl-select:hover  { border-color: var(--amber-mid); }
+.ctrl-select:focus  { border-color: var(--amber-bright); outline: none; box-shadow: 0 0 0 2px var(--amber-glow); }
+
+/* ── Top-bar buttons ──────────────────────────────────────── */
+.ctrl-btn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  gap: 4px;
+  letter-spacing: 0.07em;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  transition: all 130ms ease;
+}
+
+.btn-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.ctrl-btn--primary {
+  background: var(--amber-muted);
+  border-color: var(--amber-bright);
+  color: var(--amber-bright);
+}
+.ctrl-btn--primary:hover:not(:disabled) {
+  background: var(--amber-mid);
+  color: #000;
+  box-shadow: 0 0 12px rgba(255,179,0,0.4);
+}
+
+.ctrl-btn--danger {
+  background: var(--red-muted);
+  border-color: var(--red-fault);
+  color: var(--red-fault);
+}
+.ctrl-btn--danger:hover:not(:disabled) {
+  background: var(--red-mid);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255,61,61,0.4);
+}
+
+.ctrl-btn--secondary {
+  background: var(--bg-surface);
+  border-color: var(--border-muted);
+  color: var(--text-secondary);
+}
+.ctrl-btn--secondary:hover:not(:disabled) {
+  border-color: var(--green-nominal);
+  color: var(--green-nominal);
+}
+
+.ctrl-btn--ghost {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+}
+.ctrl-btn--ghost:hover:not(:disabled) {
+  background: var(--bg-surface);
+  border-color: var(--border-muted);
+  color: var(--text-secondary);
+}
+
+.ctrl-btn--sm { padding: 3px 7px; font-size: 0.60rem; }
+.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.ctrl-separator { background: var(--border-muted); }
+
+/* ══════════════════════════════════════════════════════════
+   3. DASHBOARD GRID
+   Console on row-3 right, Mission Control full-width bottom
+   ══════════════════════════════════════════════════════════ */
+#dashboard-grid {
+  grid-template-columns: 310px 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 88px;
+  grid-template-areas:
+    "telemetry  charts   map"
+    "telemetry  charts   attitude"
+    "fault      camera   console"
+    "command    command  command";
+  gap: 5px;
+  padding: 5px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   4. PANELS
+   ══════════════════════════════════════════════════════════ */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.7);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel-header {
+  background: var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 34px;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.panel-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  background: var(--cyan-muted);
+  color: var(--green-nominal);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.panel-body {
+  padding: 8px;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Telemetry panel — no internal scroll */
+#telemetry-panel .panel-body {
+  overflow: hidden;
+  padding: 6px;
+}
+
+/* ── Glowing status dot ────────────────────────────────────── */
+.status-indicator {
+  width: 6px;
+  height: 6px;
+  background: var(--text-dim);
+  margin-left: 6px;
+  vertical-align: middle;
+  border-radius: 50%;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+.status-indicator.active {
+  background: var(--green-nominal);
+  box-shadow: 0 0 7px var(--green-nominal);
+  animation: dark-blink 1.5s infinite;
+}
+
+/* ══════════════════════════════════════════════════════════
+   5. TELEMETRY CARDS — compact, all 10 fit without scroll
+   ══════════════════════════════════════════════════════════ */
+.telem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.telem-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.telem-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--green-nominal);
+  opacity: 0.5;
+}
+
+.telem-card:hover {
+  border-color: var(--border-active);
+}
+
+.telem-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.telem-value {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.telem-value--sm { font-size: 0.80rem; }
+
+.telem-unit {
+  display: block;
+  font-size: 0.53rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.telem-sparkline-wrap { margin-top: 2px; height: 16px; }
+.sparkline-canvas { width: 100%; height: 16px; }
+
+.telem-card.fault-active {
+  border-color: var(--red-fault);
+  box-shadow: 0 0 8px rgba(255,61,61,0.2);
+}
+.telem-card.fault-active::before { background: var(--red-fault); opacity: 1; }
+
+.telem-card.warn-active {
+  border-color: var(--yellow-warn);
+}
+.telem-card.warn-active::before { background: var(--yellow-warn); opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   6. CHART TABS
+   ══════════════════════════════════════════════════════════ */
+.chart-tab-btn {
+  font-size: 0.60rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  letter-spacing: 0.07em;
+  transition: all 120ms ease;
+}
+.chart-tab-btn:hover { color: var(--text-secondary); border-color: var(--border-muted); }
+.chart-tab-btn.active {
+  background: var(--amber-glow);
+  border-color: var(--amber-bright);
+  color: var(--amber-bright);
+}
+
+/* ══════════════════════════════════════════════════════════
+   7. GPS / MAP
+   ══════════════════════════════════════════════════════════ */
+.gps-coords-display {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--green-nominal);
+}
+
+.leaflet-tile { filter: brightness(0.48) saturate(0.65); }
+.leaflet-control-zoom a {
+  background: #111 !important;
+  color: #eee !important;
+  border-color: var(--border-muted) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   8. ATTITUDE
+   ══════════════════════════════════════════════════════════ */
+.attitude-panel-body { background: #000; }
+.attitude-angles span span { color: var(--amber-bright); font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════════
+   9. FAULT ANNUNCIATORS
+   ══════════════════════════════════════════════════════════ */
+.annunciator-tile {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: all 150ms ease;
+}
+
+.annunciator-tile::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--green-nominal);
+  transition: background 150ms ease;
+}
+
+.ann-icon { width: 18px; height: 18px; color: var(--text-tertiary); }
+.ann-icon svg { width: 100%; height: 100%; }
+
+.ann-title {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.ann-detail { font-size: 0.57rem; color: var(--text-tertiary); margin-top: 1px; }
+
+.ann-status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--green-muted);
+  color: var(--green-nominal);
+  border: 1px solid #004d2a;
+  flex-shrink: 0;
+  letter-spacing: 0.06em;
+}
+
+/* Fault state */
+.annunciator-tile.fault-active {
+  background: var(--red-muted);
+  border-color: var(--red-fault);
+  animation: dark-fault-flash 0.8s infinite;
+}
+.annunciator-tile.fault-active::before { background: var(--red-fault); }
+.annunciator-tile.fault-active .ann-icon { color: var(--red-fault); }
+.annunciator-tile.fault-active .ann-status-badge {
+  background: rgba(255,61,61,0.15);
+  color: var(--red-fault);
+  border-color: var(--red-mid);
+}
+
+@keyframes dark-fault-flash {
+  0%, 49%   { box-shadow: 0 0 10px rgba(255,61,61,0.45); opacity: 1; }
+  50%, 100% { box-shadow: none; opacity: 0.55; }
+}
+
+/* Warn state */
+.annunciator-tile.warn-active {
+  background: var(--yellow-muted);
+  border-color: var(--yellow-warn);
+  animation: dark-warn-pulse 2s infinite;
+}
+.annunciator-tile.warn-active::before { background: var(--yellow-warn); }
+
+@keyframes dark-warn-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,214,0,0.6); }
+  70%  { box-shadow: 0 0 0 7px rgba(255,214,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,214,0,0); }
+}
+
+/* Error code */
+.error-code-label { color: var(--text-tertiary); }
+.error-code-value {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green-nominal);
+  letter-spacing: 0.2em;
+}
+.error-code-value.has-fault { animation: dark-err-flash 0.6s infinite; }
+@keyframes dark-err-flash {
+  0%, 49%   { color: var(--red-fault); text-shadow: 0 0 10px var(--red-fault); }
+  50%, 100% { color: var(--red-mid); text-shadow: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   10. SYSTEM HEALTH BAR
+   ══════════════════════════════════════════════════════════ */
+#system-health-bar { border-top: 1px solid var(--border-subtle); }
+.health-label { color: var(--text-tertiary); font-size: 0.60rem; }
+.health-bar-track { background: var(--bg-elevated); }
+.health-bar-fill { background: linear-gradient(90deg, var(--cyan-mid), var(--green-nominal)); }
+.health-pct { color: var(--green-nominal); }
+.health-value { color: var(--text-primary); font-size: 0.70rem; }
+.health-value--warn { color: var(--yellow-warn); }
+
+/* ══════════════════════════════════════════════════════════
+   11. MISSION CONTROL — horizontal strip at bottom
+   ══════════════════════════════════════════════════════════ */
+.command-panel-body {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+.mission-cmd-btn {
+  flex: 1;
+  max-width: 340px;
+  padding: 8px 14px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border-radius: 7px;
+  border: 1px solid var(--border-muted);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 130ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fixed-size icons — no giant SVG blowout */
+.mission-cmd-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.cmd-btn-warn {
+  border-color: var(--amber-muted);
+  color: var(--amber-bright);
+}
+.cmd-btn-warn:hover:not(:disabled) {
+  background: var(--amber-muted);
+  border-color: var(--amber-bright);
+  color: #fff8e1;            /* cream — readable on dark amber */
+  box-shadow: 0 0 14px rgba(255,179,0,0.35);
+}
+
+.cmd-btn-danger {
+  border-color: var(--red-muted);
+  color: var(--red-fault);
+}
+.cmd-btn-danger:hover:not(:disabled) {
+  background: var(--red-muted);
+  border-color: var(--red-fault);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255,61,61,0.4);
+}
+
+.cmd-btn-emergency {
+  background: var(--red-muted);
+  border-color: var(--red-fault);
+  color: var(--red-fault);
+  font-size: 0.72rem;
+}
+.cmd-btn-emergency:hover:not(:disabled) {
+  background: var(--red-mid);
+  border-color: var(--red-fault);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(255,61,61,0.5);
+}
+
+/* ══════════════════════════════════════════════════════════
+   12. CONSOLE (row-3 right cell)
+   ══════════════════════════════════════════════════════════ */
+.console-panel-body { background: #050505; }
+
+#console-output {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+  height: 100%;
+  overflow-y: auto;
+  padding: 6px 10px;
+  line-height: 1.6;
+}
+
+.console-ts { color: var(--text-dim); width: 60px; flex-shrink: 0; }
+.console-line { border-bottom: 1px solid var(--border-faint); display: flex; gap: 10px; padding: 1px 0; }
+.console-line--info  .console-msg { color: var(--text-tertiary); }
+.console-line--data  .console-msg { color: var(--green-nominal); }
+.console-line--ok    .console-msg { color: var(--green-nominal); }
+.console-line--warn  .console-msg { color: var(--yellow-warn); }
+.console-line--error .console-msg { color: var(--red-fault); }
+
+/* ══════════════════════════════════════════════════════════
+   13. CAMERA
+   ══════════════════════════════════════════════════════════ */
+.camera-panel-body { background: #000; }
+#camera-offline-overlay { background: #000; }
+#camera-offline-overlay p { color: #444; }
+.camera-offline-sub { color: #282828 !important; }
+
+/* ══════════════════════════════════════════════════════════
+   14. SNAPSHOT STRIP
+   ══════════════════════════════════════════════════════════ */
+#snapshot-strip { background: var(--bg-panel-alt); border-top: 1px solid var(--border-subtle); }
+.snapshot-strip-label { color: var(--text-tertiary); }
+
+/* ══════════════════════════════════════════════════════════
+   15. TOGGLE SWITCH
+   ══════════════════════════════════════════════════════════ */
+.toggle-label { color: var(--text-tertiary); font-size: 0.60rem; font-weight: 600; }
+.toggle-slider { background: var(--bg-elevated); border-color: var(--border-muted); }
+.toggle-slider::after { background: var(--text-tertiary); }
+.toggle-label input:checked + .toggle-slider { background: var(--cyan-muted); border-color: var(--cyan-mid); }
+.toggle-label input:checked + .toggle-slider::after { background: var(--green-nominal); }
+
+/* ══════════════════════════════════════════════════════════
+   16. MODAL
+   ══════════════════════════════════════════════════════════ */
+.modal-overlay { background: rgba(0,0,0,0.85); }
+.modal-box { background: var(--bg-panel); border-color: var(--border-muted); box-shadow: 0 12px 60px rgba(0,0,0,0.9); }
+.modal-title { color: var(--amber-bright); }
+.modal-close-btn { color: var(--text-tertiary); }
+.modal-close-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+#snapshot-modal-meta { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 0.65rem; }
+
+/* ══════════════════════════════════════════════════════════
+   17. SCROLLBARS — ultra thin
+   ══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar         { width: 4px; height: 4px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--border-muted); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+/* ══════════════════════════════════════════════════════════
+   18. LEAFLET MARKERS
+   ══════════════════════════════════════════════════════════ */
+.cansat-marker {
+  background: var(--amber-bright);
+  border: 2px solid #000;
+  box-shadow: 0 0 8px rgba(255,179,0,0.8);
+}
+.launch-marker {
+  background: var(--green-nominal);
+  border: 2px solid #000;
+  box-shadow: 0 0 6px rgba(0,230,118,0.6);
+}
+
+/* ══════════════════════════════════════════════════════════
+   19. UTILITY
+   ══════════════════════════════════════════════════════════ */
+.text-amber { color: var(--amber-bright); }
+.text-cyan  { color: var(--green-nominal); }
+.text-green { color: var(--green-nominal); }
+.text-red   { color: var(--red-fault); }
+.text-warn  { color: var(--yellow-warn); }

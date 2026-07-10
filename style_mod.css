@@ -1,0 +1,211 @@
+/*
+   style_mod.css – Modern premium theme for CanSat GCS (light variant)
+   ---------------------------------------------------------------
+   Features:
+   • Glassmorphism panels with subtle backdrop blur
+   • Vibrant gradient background
+   • Google Font "Inter" for clean typography
+   • Glowing status dots (animation)
+   • Flashing fault annunciator when data‑fault attribute is set to "1"
+   • Responsive CSS Grid layout
+*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-family: 'Inter', sans-serif;
+  --bg-gradient: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  --panel-bg: rgba(255, 255, 255, 0.12);
+  --panel-border: rgba(255, 255, 255, 0.18);
+  --panel-radius: 12px;
+  --panel-padding: 1rem;
+  --accent-primary: #2563eb;   /* blue-600 */
+  --accent-secondary: #d97706; /* amber-600 */
+  --text-primary: #f0f9ff;     /* slate‑50 */
+  --text-muted: #cbd5e1;       /* slate‑300 */
+  --dot-glow: rgba(34, 197, 94, 0.8); /* emerald‑500 */
+}
+
+/* Global resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background: var(--bg-gradient);
+  overflow-x: hidden;
+}
+
+/* Container */
+#gcs-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Top control bar – shrink logo */
+#top-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+}
+#brand-icon {
+  width: 32px; /* smaller than original */
+  height: 32px;
+  margin-right: 0.5rem;
+}
+#brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+#brand-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+#brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Panels – glass effect */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  backdrop-filter: blur(12px);
+  padding: var(--panel-padding);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+.panel-title {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+.panel-badge {
+  background: var(--accent-primary);
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+/* Status indicator dot – glowing */
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot-glow);
+  margin-left: 0.5rem;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Telemetry cards */
+.telem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+.telem-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-align: center;
+}
+.telem-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.telem-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+.telem-unit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Chart container */
+.chart-container {
+  width: 100%;
+  height: 180px;
+}
+.chart-container.hidden { display: none; }
+
+/* Map panel */
+#leaflet-map { height: 100%; border-radius: 8px; }
+
+/* Attitude canvas */
+#attitude-canvas { width: 100%; height: 100%; border-radius: 8px; }
+
+/* Fault annunciator – flash on fault */
+.annunciator-tile[data-fault="1"] {
+  animation: faultFlash 1s infinite;
+}
+@keyframes faultFlash {
+  0%, 100% { background: rgba(239,68,68,0.2); }
+  50% { background: rgba(239,68,68,0.5); }
+}
+
+/* Camera panel – overlay hide when active */
+#camera-offline-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+#camera-video { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+
+/* Controls – button styling */
+.ctrl-btn {
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ctrl-btn:hover { background: var(--accent-secondary); }
+.ctrl-btn--danger { background: #dc2626; }
+.ctrl-btn--danger:hover { background: #b91c1c; }
+.ctrl-btn--ghost { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); }
+.ctrl-btn--ghost:hover { background: rgba(255,255,255,0.1); }
+
+/* Responsiveness */
+/* Responsive layout adjustments */
+/* Full‑screen layout – no scroll */
+:root {
+  --top-bar-height: 60px;
+}
+#top-control-bar {
+  height: var(--top-bar-height);
+  flex-shrink: 0;
+}
+#dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 0.5rem;
+  height: calc(100vh - var(--top-bar-height));
+  overflow: hidden;
+}
+#dashboard-grid > section {
+  overflow: hidden;
+}

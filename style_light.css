@@ -1,0 +1,109 @@
+/* style_light.css – Light professional theme */
+:root {
+  --primary-color: #2c3e50; /* dark blue */
+  --secondary-color: #34495e; /* darker */
+  --accent-color: #e67e22; /* orange for highlights */
+  --background-color: #f7f9fc; /* off‑white */
+  --panel-bg: #ffffff;
+  --panel-border: #dcdfe6;
+  --text-primary: #2c3e50;
+  --text-muted: #7f8c8d;
+  --status-green: #27ae60;
+  --status-amber: #e67e22;
+  --status-red: #c0392b;
+  --font-family: 'Inter', Arial, sans-serif;
+  --font-size-base: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background-color: var(--background-color);
+}
+
+/* Grid layout – map left, telemetry right, charts below */
+#dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+#map-panel { grid-column: 1 / 2; grid-row: 1 / 3; }
+#telemetry-panel { grid-column: 2 / 3; grid-row: 1; }
+#charts-panel { grid-column: 2 / 3; grid-row: 2; }
+#attitude-panel { display: none; } /* hide for this layout */
+#fault-panel { display: none; }
+#camera-panel { display: none; }
+#command-panel { display: none; }
+#console-panel { display: none; }
+
+/* Panels */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.panel-header {
+  background: var(--secondary-color);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-body {
+  padding: 0.75rem 1rem;
+  flex: 1;
+  overflow: auto;
+}
+
+/* Status indicator dots */
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--status-green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Fault flashing */
+.fault-pulse-red {
+  animation: faultFlashRed 0.8s infinite;
+}
+@keyframes faultFlashRed {
+  0%, 100% { background-color: var(--status-red); opacity: 0.8; }
+  50% { background-color: #ff8a80; opacity: 1; }
+}
+
+/* Telemetry cards */
+.telem-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.telem-label { font-weight: 500; color: var(--text-muted); }
+.telem-value { font-size: 1.2rem; font-weight: 600; }
+.telem-unit { font-size: 0.85rem; color: var(--text-muted); }

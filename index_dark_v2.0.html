@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CanSat Ground Control Software — Real-time telemetry dashboard for CanSat aerospace missions. Monitor altitude, GPS, attitude, and system health in one unified interface." />
+  <meta name="keywords" content="CanSat, Ground Control Software, GCS, Telemetry, Aerospace, Real-time, Dashboard" />
+  <meta name="author" content="CanSat GCS Team" />
+  <title>CanSat GCS — Dark Edition</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Pure Black Dark Theme Overlay -->
+  <link rel="stylesheet" href="css/style_dark.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<div id="gcs-container">
+
+  <!-- ═══════════════════════════════════════════════════════
+       TOP CONTROL BAR
+  ═══════════════════════════════════════════════════════ -->
+  <header id="top-control-bar">
+    <div id="brand-block">
+
+      <div id="brand-text">
+        <span id="brand-title">CanSat GCS</span>
+        <span id="brand-subtitle">Ground Control Software v2.0</span>
+      </div>
+    </div>
+
+    <div id="mission-status-block">
+      <div class="status-pill" id="mission-phase-pill">
+        <span class="status-dot" id="mission-phase-dot"></span>
+        <span id="mission-phase-label">STANDBY</span>
+      </div>
+      <div class="status-pill" id="serial-status-pill">
+        <span class="status-dot" id="serial-status-dot"></span>
+        <span id="serial-status-label">DISCONNECTED</span>
+      </div>
+    </div>
+
+    <div id="control-actions">
+      <div id="baud-selector-group">
+        <label for="baud-rate-select" class="ctrl-label">BAUD</label>
+        <select id="baud-rate-select" class="ctrl-select">
+          <option value="9600">9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200" selected>115200</option>
+          <option value="230400">230400</option>
+          <option value="460800">460800</option>
+        </select>
+      </div>
+
+      <button id="btn-connect-serial" class="ctrl-btn ctrl-btn--primary" title="Connect to serial port via Web Serial API">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 10 C3 6.13 6.13 3 10 3 C13.87 3 17 6.13 17 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M10 7 L10 13 M7 10 L10 13 L13 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        CONNECT
+      </button>
+
+      <button id="btn-disconnect-serial" class="ctrl-btn ctrl-btn--danger" disabled title="Disconnect from serial port">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 6 L14 14 M14 6 L6 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        DISCONNECT
+      </button>
+
+      <!-- ── SIMULATOR CONTROLS ── -->
+      <div id="sim-separator" class="ctrl-separator" aria-hidden="true"></div>
+
+      <div id="sim-speed-group">
+        <label for="sim-speed-select" class="ctrl-label">SIM ×</label>
+        <select id="sim-speed-select" class="ctrl-select ctrl-select--sim" title="Simulation speed multiplier">
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="5">5×</option>
+          <option value="10">10×</option>
+        </select>
+      </div>
+
+      <button id="btn-sim-start" class="ctrl-btn ctrl-btn--sim" title="Start built-in flight simulation (no hardware needed)">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2 C5.6 2 2 5.6 2 10 C2 14.4 5.6 18 10 18 C14.4 18 18 14.4 18 10 C18 5.6 14.4 2 10 2 Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 7 L8 13 L14 10 Z" fill="currentColor"/>
+        </svg>
+        SIMULATE
+      </button>
+
+      <button id="btn-sim-stop" class="ctrl-btn ctrl-btn--sim-stop" disabled title="Stop the flight simulation">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="6" width="8" height="8" rx="1" fill="currentColor"/>
+        </svg>
+        STOP SIM
+      </button>
+
+      <div id="sim-separator-2" class="ctrl-separator" aria-hidden="true"></div>
+
+      <button id="btn-export-csv" class="ctrl-btn ctrl-btn--secondary" title="Export all received telemetry as CSV">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 3 L10 13 M6 9 L10 13 L14 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 15 L16 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        CSV
+      </button>
+
+      <button id="btn-export-json" class="ctrl-btn ctrl-btn--secondary" title="Export all received telemetry as JSON">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 7 C3 7 3 13 5 13 M15 7 C17 7 17 13 15 13 M10 7 L10 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        JSON
+      </button>
+
+      <button id="btn-clear-data" class="ctrl-btn ctrl-btn--ghost" title="Clear all telemetry data and reset dashboard">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6 L16 6 M8 6 L8 4 L12 4 L12 6 M6 6 L6 16 L14 16 L14 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        CLEAR
+      </button>
+    </div>
+
+    <div id="clock-block">
+      <div class="clock-item">
+        <span class="clock-label">MET</span>
+        <span id="mission-elapsed-time" class="clock-value">T+00:00:00</span>
+      </div>
+      <div class="clock-item">
+        <span class="clock-label">UTC</span>
+        <span id="utc-clock" class="clock-value">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════
+       OPERATOR DASHBOARD GRID
+  ═══════════════════════════════════════════════════════ -->
+  <main id="dashboard-grid">
+
+    <!-- ── COLUMN A: Telemetry Readouts ── -->
+    <section id="telemetry-panel" class="panel" aria-label="Primary Telemetry Readouts">
+      <div class="panel-header">
+        <span class="panel-title">TELEMETRY<span id="telem-status-dot" class="status-indicator"></span></span>
+        <span class="panel-badge" id="packet-counter-badge">PKT #0</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="telem-grid">
+          <div class="telem-card" id="card-altitude">
+            <div class="telem-label">ALTITUDE</div>
+            <div class="telem-value" id="val-altitude">---</div>
+            <div class="telem-unit">m</div>
+            <div class="telem-sparkline-wrap"><canvas id="spark-altitude" class="sparkline-canvas"></canvas></div>
+          </div>
+
+          <div class="telem-card" id="card-pressure">
+            <div class="telem-label">PRESSURE</div>
+            <div class="telem-value" id="val-pressure">---</div>
+            <div class="telem-unit">hPa</div>
+            <div class="telem-sparkline-wrap"><canvas id="spark-pressure" class="sparkline-canvas"></canvas></div>
+          </div>
+
+          <div class="telem-card" id="card-temperature">
+            <div class="telem-label">TEMPERATURE</div>
+            <div class="telem-value" id="val-temperature">---</div>
+            <div class="telem-unit">°C</div>
+            <div class="telem-sparkline-wrap"><canvas id="spark-temperature" class="sparkline-canvas"></canvas></div>
+          </div>
+
+          <div class="telem-card" id="card-descent-rate">
+            <div class="telem-label">DESCENT RATE</div>
+            <div class="telem-value" id="val-descent-rate">---</div>
+            <div class="telem-unit">m/s</div>
+            <div class="telem-sparkline-wrap"><canvas id="spark-descent" class="sparkline-canvas"></canvas></div>
+          </div>
+
+          <div class="telem-card" id="card-voltage">
+            <div class="telem-label">BATTERY</div>
+            <div class="telem-value" id="val-voltage">---</div>
+            <div class="telem-unit">V</div>
+            <div class="telem-sparkline-wrap"><canvas id="spark-voltage" class="sparkline-canvas"></canvas></div>
+          </div>
+
+          <div class="telem-card" id="card-gps-lat">
+            <div class="telem-label">GPS LAT</div>
+            <div class="telem-value telem-value--sm" id="val-gps-lat">---</div>
+            <div class="telem-unit">°</div>
+          </div>
+
+          <div class="telem-card" id="card-gps-lng">
+            <div class="telem-label">GPS LNG</div>
+            <div class="telem-value telem-value--sm" id="val-gps-lng">---</div>
+            <div class="telem-unit">°</div>
+          </div>
+
+          <div class="telem-card" id="card-roll">
+            <div class="telem-label">ROLL</div>
+            <div class="telem-value" id="val-roll">---</div>
+            <div class="telem-unit">°</div>
+          </div>
+
+          <div class="telem-card" id="card-pitch">
+            <div class="telem-label">PITCH</div>
+            <div class="telem-value" id="val-pitch">---</div>
+            <div class="telem-unit">°</div>
+          </div>
+
+          <div class="telem-card" id="card-yaw">
+            <div class="telem-label">YAW</div>
+            <div class="telem-value" id="val-yaw">---</div>
+            <div class="telem-unit">°</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── COLUMN B: Charts ── -->
+    <section id="charts-panel" class="panel" aria-label="Telemetry Charts">
+      <div class="panel-header">
+        <span class="panel-title">CHARTS</span>
+        <div class="panel-header-controls">
+          <button class="chart-tab-btn active" data-chart="altitude" id="tab-altitude">ALT</button>
+          <button class="chart-tab-btn" data-chart="pressure" id="tab-pressure">PRES</button>
+          <button class="chart-tab-btn" data-chart="temperature" id="tab-temperature">TEMP</button>
+          <button class="chart-tab-btn" data-chart="descent" id="tab-descent">DSC</button>
+          <button class="chart-tab-btn" data-chart="voltage" id="tab-voltage">VOLT</button>
+        </div>
+      </div>
+      <div class="panel-body chart-panel-body">
+        <div class="chart-container" id="chart-altitude-container">
+          <canvas id="chart-altitude" aria-label="Altitude over time chart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="chart-pressure-container">
+          <canvas id="chart-pressure" aria-label="Pressure over time chart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="chart-temperature-container">
+          <canvas id="chart-temperature" aria-label="Temperature over time chart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="chart-descent-container">
+          <canvas id="chart-descent" aria-label="Descent rate over time chart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="chart-voltage-container">
+          <canvas id="chart-voltage" aria-label="Battery voltage over time chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COLUMN C: Map ── -->
+    <section id="map-panel" class="panel" aria-label="GPS Trajectory Map">
+      <div class="panel-header">
+        <span class="panel-title">GPS TRACK</span>
+        <div class="gps-coords-display">
+          <span id="map-lat-display">LAT: ---</span>
+          <span id="map-lng-display">LNG: ---</span>
+        </div>
+      </div>
+      <div class="panel-body map-panel-body">
+        <div id="leaflet-map" aria-label="Real-time GPS tracking map"></div>
+      </div>
+    </section>
+
+    <!-- ── COLUMN D: 3D Attitude Viewport ── -->
+    <section id="attitude-panel" class="panel" aria-label="3D Attitude Visualization">
+      <div class="panel-header">
+        <span class="panel-title">ATTITUDE</span>
+        <div class="attitude-angles">
+          <span>R:<span id="att-roll-display">0.0</span>°</span>
+          <span>P:<span id="att-pitch-display">0.0</span>°</span>
+          <span>Y:<span id="att-yaw-display">0.0</span>°</span>
+        </div>
+      </div>
+      <div class="panel-body attitude-panel-body">
+        <canvas id="attitude-canvas" aria-label="3D CanSat attitude visualization"></canvas>
+      </div>
+    </section>
+
+    <!-- ── COLUMN E: Fault Annunciators ── -->
+    <section id="fault-panel" class="panel" aria-label="System Fault Annunciator Panel">
+      <div class="panel-header">
+        <span class="panel-title">FAULT ANNUNCIATORS</span>
+        <div class="error-code-display">
+          <span class="error-code-label">ERR CODE</span>
+          <span id="error-code-value" class="error-code-value">0000</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="annunciator-grid">
+
+          <div class="annunciator-row">
+            <div class="annunciator-digit-label">D1</div>
+            <div class="annunciator-tile" id="ann-descent-rate" data-fault="0">
+              <div class="ann-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 5 L12 19 M7 14 L12 19 L17 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="ann-info">
+                <div class="ann-title">DESCENT RATE</div>
+                <div class="ann-detail">Nominal: 8–10 m/s</div>
+              </div>
+              <div class="ann-status-badge">NOMINAL</div>
+            </div>
+          </div>
+
+          <div class="annunciator-row">
+            <div class="annunciator-digit-label">D2</div>
+            <div class="annunciator-tile" id="ann-gps-state" data-fault="0">
+              <div class="ann-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 2 C8.13 2 5 5.13 5 9 C5 13.25 12 22 12 22 C12 22 19 13.25 19 9 C19 5.13 15.87 2 12 2 Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="ann-info">
+                <div class="ann-title">GPS STATE</div>
+                <div class="ann-detail">Active fix expected</div>
+              </div>
+              <div class="ann-status-badge">NOMINAL</div>
+            </div>
+          </div>
+
+          <div class="annunciator-row">
+            <div class="annunciator-digit-label">D3</div>
+            <div class="annunciator-tile" id="ann-separation" data-fault="0">
+              <div class="ann-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 12 L16 12 M12 8 L12 16 M5 5 L5 9 L9 9 M19 5 L19 9 L15 9 M5 19 L5 15 L9 15 M19 19 L19 15 L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="ann-info">
+                <div class="ann-title">SEPARATION</div>
+                <div class="ann-detail">Structural mechanism</div>
+              </div>
+              <div class="ann-status-badge">NOMINAL</div>
+            </div>
+          </div>
+
+          <div class="annunciator-row">
+            <div class="annunciator-digit-label">D4</div>
+            <div class="annunciator-tile" id="ann-parachute" data-fault="0">
+              <div class="ann-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 20 L12 13 M9 13 L12 20 L15 13 M4 12 C4 7.58 7.58 4 12 4 C16.42 4 20 7.58 20 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M4 12 Q6 9 9 13 Q12 8 15 13 Q18 9 20 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="ann-info">
+                <div class="ann-title">PARACHUTE</div>
+                <div class="ann-detail">Deployment monitor</div>
+              </div>
+              <div class="ann-status-badge">INACTIVE</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- System Health Summary -->
+        <div id="system-health-bar">
+          <div class="health-item">
+            <span class="health-label">LINK QUALITY</span>
+            <div class="health-bar-track">
+              <div class="health-bar-fill" id="link-quality-bar" style="width:0%"></div>
+            </div>
+            <span class="health-pct" id="link-quality-pct">0%</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">PACKET RATE</span>
+            <span class="health-value" id="packet-rate-display">0 pkt/s</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">TOTAL PACKETS</span>
+            <span class="health-value" id="total-packets-display">0</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">PARSE ERRORS</span>
+            <span class="health-value health-value--warn" id="parse-errors-display">0</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">CHECKSUM FAIL</span>
+            <span class="health-value health-value--warn" id="checksum-fail-display">0</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── COLUMN F: Camera Stream ── -->
+    <section id="camera-panel" class="panel" aria-label="Internal Camera Stream">
+      <div class="panel-header">
+        <span class="panel-title">CAMERA STREAM<span id="camera-status-dot" class="status-indicator"></span></span>
+        <div class="camera-controls">
+          <button id="btn-camera-start" class="ctrl-btn ctrl-btn--sm ctrl-btn--primary" title="Start camera feed">▶ LIVE</button>
+          <button id="btn-camera-stop" class="ctrl-btn ctrl-btn--sm ctrl-btn--danger" disabled title="Stop camera feed">■ STOP</button>
+          <button id="btn-camera-snapshot" class="ctrl-btn ctrl-btn--sm ctrl-btn--secondary" title="Take snapshot">⌨ SNAP</button>
+        </div>
+      </div>
+      <div class="panel-body camera-panel-body">
+        <div id="camera-viewport">
+          <video id="camera-video" autoplay muted playsinline aria-label="Live camera feed from CanSat"></video>
+          <canvas id="camera-overlay-canvas" aria-hidden="true"></canvas>
+          <div id="camera-offline-overlay">
+            <div class="camera-offline-icon">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="16" width="44" height="32" rx="4" stroke="#555" stroke-width="2"/>
+                <path d="M48 26 L60 20 L60 44 L48 38 Z" stroke="#555" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M4 4 L60 60" stroke="#F5A623" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p>Camera Offline</p>
+            <p class="camera-offline-sub">Click LIVE to activate device camera</p>
+          </div>
+        </div>
+        <div id="snapshot-strip">
+          <div class="snapshot-strip-label">SNAPSHOTS</div>
+          <div id="snapshot-thumbnails"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COLUMN G: Mission Control ── -->
+    <section id="command-panel" class="panel" aria-label="Mission Control Panel">
+      <div class="panel-header">
+        <span class="panel-title">MISSION CONTROL</span>
+      </div>
+      <div class="panel-body command-panel-body">
+        
+        <button id="btn-cmd-sep" class="mission-cmd-btn cmd-btn-warn" title="Trigger Manual Payload Separation">
+          <svg class="mission-cmd-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 12L16 12M12 8L12 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M5 5L5 9L9 9M19 5L19 9L15 9M5 19L5 15L9 15M19 19L19 15L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          MANUAL SEPARATION
+        </button>
+
+        <button id="btn-cmd-chute" class="mission-cmd-btn cmd-btn-danger" title="Deploy Parachute Manually">
+          <svg class="mission-cmd-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 20L12 13M9 13L12 20L15 13M4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M4 12Q6 9 9 13Q12 8 15 13Q18 9 20 12" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          </svg>
+          EMERGENCY PARACHUTE
+        </button>
+
+        <button id="btn-cmd-red" class="mission-cmd-btn cmd-btn-emergency" title="Trigger Redundant Activation / Reset">
+          <svg class="mission-cmd-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          REDUNDANT ACTIVATION
+        </button>
+
+      </div>
+    </section>
+
+    <!-- ── FULL WIDTH: Raw Console ── -->
+    <section id="console-panel" class="panel" aria-label="Raw Telemetry Console">
+      <div class="panel-header">
+        <span class="panel-title">RAW CONSOLE</span>
+        <div class="console-controls">
+          <label class="toggle-label">
+            <input type="checkbox" id="console-autoscroll" checked />
+            <span class="toggle-slider"></span>
+            AUTO-SCROLL
+          </label>
+          <button id="btn-clear-console" class="ctrl-btn ctrl-btn--sm ctrl-btn--ghost">CLEAR</button>
+        </div>
+      </div>
+      <div class="panel-body console-panel-body">
+        <div id="console-output" role="log" aria-live="polite" aria-label="Raw serial console output">
+          <div class="console-line console-line--info">
+            <span class="console-ts">00:00:00</span>
+            <span class="console-msg">[ GCS ] System initialized. Connect a serial device to begin receiving telemetry.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL: SNAPSHOT VIEWER
+  ═══════════════════════════════════════════════════════ -->
+  <div id="snapshot-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Snapshot viewer" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">SNAPSHOT</span>
+        <button id="snapshot-modal-close" class="modal-close-btn" aria-label="Close snapshot viewer">✕</button>
+      </div>
+      <div class="modal-body">
+        <img id="snapshot-modal-img" src="" alt="Snapshot from CanSat camera" />
+        <div id="snapshot-modal-meta"></div>
+      </div>
+      <div class="modal-footer">
+        <a id="snapshot-download-link" class="ctrl-btn ctrl-btn--primary" download="cansat_snapshot.png">DOWNLOAD</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#gcs-container -->
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS — loaded in topological dependency order
+═══════════════════════════════════════════════════════ -->
+<script src="js/ui.js" defer></script>
+<script src="js/serial.js" defer></script>
+<script src="js/telemetry.js" defer></script>
+<script src="js/charts.js" defer></script>
+<script src="js/map.js" defer></script>
+<script src="js/attitude.js" defer></script>
+<script src="js/simulator.js" defer></script>
+<script src="js/main_sim.js" defer></script>
+
+</body>
+</html>
